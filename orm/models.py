@@ -25,4 +25,4 @@ class Model(metaclass=BaseModel):
 
     @classmethod
     def get_fields(cls):
-        return cls._get_manager()._get_fields()
+        return tuple(cls._get_manager()._get_fields())

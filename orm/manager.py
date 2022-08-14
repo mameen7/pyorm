@@ -3,7 +3,7 @@ import mysql.connector
 
 from orm.utils import Field
 from orm.query import Query
-from orm.exceptions import MissingParameter
+from orm.exceptions import MissingParameter, ObjectDoesNotExiet
 
 
 class BaseManager:
@@ -39,7 +39,7 @@ class BaseManager:
             (self.table_name, )
         )
 
-        return [Field(name=row[0], data_type=row[1]) for row in cursor.fetchall()]
+        return (Field(name=row[0], data_type=row[1]) for row in cursor.fetchall())
     
     def _get_filter_query_result(self, cursor, fields):
         # The fetching is done by batches to avoid memory run out.
@@ -71,3 +71,11 @@ class BaseManager:
         cursor.execute(query, params)
 
         return self._get_filter_query_result(cursor, fields)
+
+    def get(self, fields, **kwargs):
+        if not kwargs:
+            raise MissingParameter('At least one condition is required!')
+        model_object = self.filter(fields, **kwargs)
+        if not model_object:
+            raise ObjectDoesNotExiet('Object does not exit!')
+        return model_object[0]
