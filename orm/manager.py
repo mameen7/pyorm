@@ -1,4 +1,3 @@
-import itertools
 import psycopg2
 import mysql.connector
 
@@ -14,13 +13,13 @@ class BaseManager:
         self.model_class = model_class
 
     @classmethod
-    def set_pg_connection(cls, db_settings=False):
+    def set_pg_connection(cls, db_settings):
         connection = psycopg2.connect(**db_settings)
         connection.autocommit = True
         cls.connection = connection
 
     @classmethod
-    def set_mysql_connection(cls, db_settings=False):
+    def set_mysql_connection(cls, db_settings):
         connection = mysql.connector.connect(**db_settings)
         cls.connection = connection
 
