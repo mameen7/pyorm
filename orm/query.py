@@ -5,12 +5,7 @@ class Query:
         self.table_name = table_name
 
     def get_filter_query(self, fields, limit=None, condition=None, **kwargs):
-        if '*' in fields:
-            fields_format = '*'
-            # fields = [field.name for field in self._get_fields()]
-        else:
-            fields_format = ', '.join(fields)
-
+        fields_format = '*' if '*' in fields else ', '.join(fields)
         query = f"SELECT {fields_format} FROM {self.table_name}"
         params = []
 
