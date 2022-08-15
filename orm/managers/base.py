@@ -8,6 +8,7 @@ class BaseManager:
 
     def __init__(self, model_class):
         self.model_class = model_class
+        self.query = Query(self.model_class.table_name)
 
     def _get_cursor(self):
         return self.connection.cursor()
@@ -47,14 +48,14 @@ class BaseManager:
             is_fetching_completed = len(rows) < batch_size
 
         return model_objects
-        
+
     def all(self):
         return self.filter()
     
     def filter(self, fields='*', limit=None, condition=None, **kwargs):
-        query, params = Query(self._table_name).get_filter_query(fields, limit, condition, **kwargs)
+        sql_query, params = self.query.get_filter_query(fields, limit, condition, **kwargs)
         cursor = self._get_cursor()
-        cursor.execute(query, params)
+        cursor.execute(sql_query, params)
 
         return self._get_filter_query_result(cursor, fields)
 
@@ -74,19 +75,19 @@ class BaseManager:
             
         # Ensure that the record exist in the database before executing update
         self.get(condition=condition, **kwargs)
-        query, params = query, params = Query(self._table_name).get_update_query(new_data, condition, **kwargs)
-        self._execute_query(query, params)
+        sql_query, params = self.query.get_update_query(new_data, condition, **kwargs)
+        self._execute_query(sql_query, params)
 
     def create(self, **kwargs):
         self.bulk_create(data=[kwargs])
 
     def bulk_create(self, data):
-        query, params = query, params = Query(self._table_name).get_bulk_create_query(data)
-        self._execute_query(query, params)
+        sql_query, params = self.query.get_bulk_create_query(data)
+        self._execute_query(sql_query, params)
 
     def delete(self, condition=None, **kwargs):
         if not (condition or kwargs):
             raise MissingParameter('Error! At least one condition is required')
         self.get(condition=condition, **kwargs)
-        query, params = query, params = Query(self._table_name).get_delete_query(condition, **kwargs)
-        self._execute_query(query, params)
+        sql_query, params = self.query.get_delete_query(condition, **kwargs)
+        self._execute_query(sql_query, params)

@@ -14,7 +14,7 @@ class BaseModel(type):
 
 
 class Model(metaclass=BaseModel):
-    table_name = ""
+    table_name = ''
 
     def __init__(self, **row_data):
         for field_name, value in row_data.items():
