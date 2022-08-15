@@ -1,6 +1,3 @@
-import psycopg2
-import mysql.connector
-
 from orm.utils import Field
 from orm.query import Query
 from orm.exceptions import MissingParameter, ObjectDoesNotExiet
@@ -12,17 +9,6 @@ class BaseManager:
     def __init__(self, model_class):
         self.model_class = model_class
 
-    @classmethod
-    def set_pg_connection(cls, db_settings):
-        connection = psycopg2.connect(**db_settings)
-        connection.autocommit = True
-        cls.connection = connection
-
-    @classmethod
-    def set_mysql_connection(cls, db_settings):
-        connection = mysql.connector.connect(**db_settings)
-        cls.connection = connection
-
     def _get_cursor(self):
         return self.connection.cursor()
 
@@ -31,7 +17,7 @@ class BaseManager:
         cursor.execute(query, params)
         
     @property
-    def table_name(self):
+    def _table_name(self):
         return self.model_class.table_name
 
     def _get_fields(self):
@@ -40,7 +26,7 @@ class BaseManager:
             """
             SELECT column_name, data_type FROM information_schema.columns WHERE table_name=%s
             """,
-            (self.table_name, )
+            (self._table_name, )
         )
 
         return (Field(name=row[0], data_type=row[1]) for row in cursor.fetchall())
@@ -64,8 +50,7 @@ class BaseManager:
     
     def filter(self, fields='*', limit=None, condition=None, **kwargs):
         # Get generated sql query with parameters
-        query, params = Query(self.table_name).get_filter_query(fields, limit, condition, **kwargs)
-        # Execute query
+        query, params = Query(self._table_name).get_filter_query(fields, limit, condition, **kwargs)
         cursor = self._get_cursor()
         cursor.execute(query, params)
 
@@ -87,5 +72,14 @@ class BaseManager:
             
         # Ensure that the record exist in the database before executing update
         self.get(condition=condition, **kwargs)
-        query, params = query, params = Query(self.table_name).get_update_query(new_data, condition, **kwargs)
+        # Get generated sql query with parameters
+        query, params = query, params = Query(self._table_name).get_update_query(new_data, condition, **kwargs)
+        self._execute_query(query, params)
+
+    def create(self, **kwargs):
+        self.bulk_create(data=[kwargs])
+
+    def bulk_create(self, data):
+        # Get generated sql query with parameters
+        query, params = query, params = Query(self._table_name).get_bulk_create_query(data)
         self._execute_query(query, params)

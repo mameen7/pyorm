@@ -1,4 +1,4 @@
-from orm.manager import BaseManager
+from orm.managers.base import BaseManager
 from orm.exceptions import ObjectDoesNotExiet
 
 
@@ -22,10 +22,9 @@ class Model(metaclass=BaseModel):
 
     def save(self):
         try:
-            model_object = self.__class__.objects.get(id=self.__dict__.get('id'))
+            self.__class__.objects.get(id=self.__dict__.get('id'))
         except ObjectDoesNotExiet:
-            # Todo call create
-            print('exception occur!')
+            self.__class__.objects.create(**self.__dict__)
         else:
             self.__class__.objects.update(self.__dict__, id=self.__dict__.get('id'))
 
