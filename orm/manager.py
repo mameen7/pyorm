@@ -25,6 +25,10 @@ class BaseManager:
 
     def _get_cursor(self):
         return self.connection.cursor()
+
+    def _execute_query(self, query, params):
+        cursor = self._get_cursor()
+        cursor.execute(query, params)
         
     @property
     def table_name(self):
@@ -42,7 +46,7 @@ class BaseManager:
         return (Field(name=row[0], data_type=row[1]) for row in cursor.fetchall())
     
     def _get_filter_query_result(self, cursor, fields):
-        # The fetching is done by batches to avoid memory run out.
+        # The fetching is done in batches to avoid memory run out.
         if '*' in fields:
             fields = [field.name for field in self._get_fields()]
 
@@ -58,24 +62,30 @@ class BaseManager:
 
         return model_objects
     
-    def filter(self, fields, limit=None, condition=None, **kwargs):
-        if not fields:
-            # raise exception
-            raise MissingParameter('Missing Parameter! Filter is missing a required argument fields: []')
-        
+    def filter(self, fields='*', limit=None, condition=None, **kwargs):
         # Get generated sql query with parameters
         query, params = Query(self.table_name).get_filter_query(fields, limit, condition, **kwargs)
-
         # Execute query
         cursor = self._get_cursor()
         cursor.execute(query, params)
 
         return self._get_filter_query_result(cursor, fields)
 
-    def get(self, fields, **kwargs):
-        if not kwargs:
-            raise MissingParameter('At least one condition is required!')
-        model_object = self.filter(fields, **kwargs)
+    def get(self, fields='*', condition=None, **kwargs):
+        if not (condition or kwargs):
+            raise MissingParameter('Error! At least one condition is required')
+        model_object = self.filter(fields, limit=1, condition=condition, **kwargs)
         if not model_object:
-            raise ObjectDoesNotExiet('Object does not exit!')
+            raise ObjectDoesNotExiet('Error! Object does not exit')
         return model_object[0]
+
+    def update(self, new_data, condition=None, **kwargs):
+        if not new_data:
+            raise MissingParameter('Error! Missing update data')
+        if not (condition or kwargs):
+            raise MissingParameter('Error! At least one condition is required')
+            
+        # Ensure that the record exist in the database before executing update
+        self.get(condition=condition, **kwargs)
+        query, params = query, params = Query(self.table_name).get_update_query(new_data, condition, **kwargs)
+        self._execute_query(query, params)

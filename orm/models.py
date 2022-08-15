@@ -1,4 +1,5 @@
 from orm.manager import BaseManager
+from orm.exceptions import ObjectDoesNotExiet
 
 
 class BaseModel(type):
@@ -18,6 +19,15 @@ class Model(metaclass=BaseModel):
     def __init__(self, **row_data):
         for field_name, value in row_data.items():
             setattr(self, field_name, value)
+
+    def save(self):
+        try:
+            model_object = self.__class__.objects.get(id=self.__dict__.get('id'))
+        except ObjectDoesNotExiet:
+            # Todo call create
+            print('exception occur!')
+        else:
+            self.__class__.objects.update(self.__dict__, id=self.__dict__.get('id'))
 
     def __repr__(self):
         attrs_format = ", ".join([f'{field}={value}' for field, value in self.__dict__.items()])
