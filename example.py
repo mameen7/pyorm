@@ -12,8 +12,14 @@ class User(Model):
     model_manager = PostgreSQLManager
     
     
-User.objects.create(schema_name='jofay', name='Jopay', description='jofay description', created_on='2022-08-15')
+#User.objects.create(schema_name='jofay', name='Jopay', description='jofay description', created_on='2022-08-15')
 
-user = User.objects.get(schema_name='jofay')
+users = User.objects.all()
 print('---------------------------------------!!!!')
-print(user)
+print(users)
+
+User.objects.delete(schema_name='jofay')
+
+users = User.objects.all()
+print('---------------------------------------After')
+print(users)

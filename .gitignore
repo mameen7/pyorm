@@ -112,3 +112,4 @@ dmypy.json
 .pyre/
 
 orm/__pycache__/
+example.py

@@ -56,3 +56,15 @@ class Query:
         params = tuple(itertools.chain(*values))
 
         return query, params
+
+    def get_delete_query(self, condition, **kwargs):
+        # Build DELETE query
+        query = f"DELETE FROM {self._table_name} "
+        params = []
+        if kwargs and not condition:
+            condition = Condition(**kwargs)
+        if condition:
+            query += f" WHERE {condition.sql_format}"
+            params += condition.query_vars
+
+        return query, params

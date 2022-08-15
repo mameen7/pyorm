@@ -47,9 +47,11 @@ class BaseManager:
             is_fetching_completed = len(rows) < batch_size
 
         return model_objects
+        
+    def all(self):
+        return self.filter()
     
     def filter(self, fields='*', limit=None, condition=None, **kwargs):
-        # Get generated sql query with parameters
         query, params = Query(self._table_name).get_filter_query(fields, limit, condition, **kwargs)
         cursor = self._get_cursor()
         cursor.execute(query, params)
@@ -72,7 +74,6 @@ class BaseManager:
             
         # Ensure that the record exist in the database before executing update
         self.get(condition=condition, **kwargs)
-        # Get generated sql query with parameters
         query, params = query, params = Query(self._table_name).get_update_query(new_data, condition, **kwargs)
         self._execute_query(query, params)
 
@@ -80,6 +81,12 @@ class BaseManager:
         self.bulk_create(data=[kwargs])
 
     def bulk_create(self, data):
-        # Get generated sql query with parameters
         query, params = query, params = Query(self._table_name).get_bulk_create_query(data)
+        self._execute_query(query, params)
+
+    def delete(self, condition=None, **kwargs):
+        if not (condition or kwargs):
+            raise MissingParameter('Error! At least one condition is required')
+        self.get(condition=condition, **kwargs)
+        query, params = query, params = Query(self._table_name).get_delete_query(condition, **kwargs)
         self._execute_query(query, params)
