@@ -1,6 +1,13 @@
 from orm.utils import Field, Q
 from orm.query import Query
-from orm.exceptions import MissingParameter, ObjectDoesNotExist, InvalidParameter
+from orm.exceptions import ObjectDoesNotExist
+from orm.decorators import (
+    validate_filter_params, 
+    validate_get_params,
+    validate_update_params, 
+    validate_create_data,
+    validate_delete_params
+)
 
 
 class BaseManager:
@@ -29,7 +36,6 @@ class BaseManager:
             """,
             (self._table_name, )
         )
-
         return (Field(name=row[0], data_type=row[1]) for row in cursor.fetchall())
     
     def _get_filter_query_result(self, cursor, fields):
@@ -52,53 +58,37 @@ class BaseManager:
     def all(self):
         return self.filter()
     
+    @validate_filter_params
     def filter(self, fields=None, condition=None, limit=None, **kwargs):
-        if fields and not (isinstance(fields, list) or isinstance(fields, Q) or None):
-            raise InvalidParameter
-        if isinstance(fields, Q):
-            condition, fields = fields, None
-
         sql_query, params = self.query.get_filter_query(fields, condition, limit, **kwargs)
         cursor = self._get_cursor()
         cursor.execute(sql_query, params)
-
         return self._get_filter_query_result(cursor, fields)
 
+    @validate_get_params
     def get(self, fields=None, condition=None, **kwargs):
-        if fields and not (isinstance(fields, list) or isinstance(fields, Q)):
-            raise InvalidParameter
-        if isinstance(fields, Q):
-            condition, fields = fields, None
-        if not (condition or kwargs):
-            raise MissingParameter
-
-        model_object = self.filter(fields, condition=condition, limit=1, **kwargs)
+        model_object = self.filter(fields, condition, limit=1, **kwargs)
         if not model_object:
             raise ObjectDoesNotExist
-
         return model_object[0]
 
-    def update(self, new_data, condition=None, **kwargs):
-        if not new_data:
-            raise MissingParameter
-        if not (condition or kwargs):
-            raise MissingParameter
-            
+    @validate_update_params
+    def update(self, data, condition=None, **kwargs):
         # Ensure that the record exist in the database before executing update
         self.get(condition=condition, **kwargs)
-        sql_query, params = self.query.get_update_query(new_data, condition, **kwargs)
+        sql_query, params = self.query.get_update_query(data, condition, **kwargs)
         self._execute_query(sql_query, params)
 
     def create(self, **kwargs):
         self.bulk_create(data=[kwargs])
 
+    @validate_create_data
     def bulk_create(self, data):
         sql_query, params = self.query.get_bulk_create_query(data)
         self._execute_query(sql_query, params)
 
+    @validate_delete_params
     def delete(self, condition=None, **kwargs):
-        if not (condition or kwargs):
-            raise MissingParameter
         self.get(condition=condition, **kwargs)
         sql_query, params = self.query.get_delete_query(condition, **kwargs)
         self._execute_query(sql_query, params)

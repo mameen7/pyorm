@@ -11,6 +11,8 @@ class Query:
         params = []
         if kwargs and not condition:
             condition = Q(**kwargs)
+        if kwargs and condition:
+            condition = condition & Q(**kwargs)
         if condition:
             query += f" WHERE {condition.sql_format}"
             params += condition.query_vars
@@ -33,6 +35,8 @@ class Query:
         params = []
         if kwargs and not condition:
             condition = Condition(**kwargs)
+        if kwargs and condition:
+            condition = condition & Q(**kwargs)
         if condition:
             query += f" WHERE {condition.sql_format}"
             params += condition.query_vars
