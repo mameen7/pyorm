@@ -1,16 +1,16 @@
 import itertools
-from orm.utils import Condition
+from orm.utils import Q
 
 class Query:
     def __init__(self, table_name):
         self._table_name = table_name
 
-    def get_filter_query(self, fields, limit=None, condition=None, **kwargs):
-        fields_format = '*' if '*' in fields else ', '.join(fields)
+    def get_filter_query(self, fields, condition, limit, **kwargs):
+        fields_format = '*' if not fields else ', '.join(fields)
         query = f"SELECT {fields_format} FROM {self._table_name}"
         params = []
         if kwargs and not condition:
-            condition = Condition(**kwargs)
+            condition = Q(**kwargs)
         if condition:
             query += f" WHERE {condition.sql_format}"
             params += condition.query_vars
@@ -20,7 +20,7 @@ class Query:
 
         return query, params
 
-    def get_update_query(self, new_data, condition=None, **kwargs):
+    def get_update_query(self, new_data, condition, **kwargs):
         temp_arr = []
         for field_name, value in new_data.items():
             if isinstance(value, int) or isinstance(value, float):
@@ -62,7 +62,7 @@ class Query:
         query = f"DELETE FROM {self._table_name} "
         params = []
         if kwargs and not condition:
-            condition = Condition(**kwargs)
+            condition = Q(**kwargs)
         if condition:
             query += f" WHERE {condition.sql_format}"
             params += condition.query_vars
