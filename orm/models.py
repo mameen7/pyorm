@@ -1,5 +1,5 @@
 from orm.managers.base import BaseManager
-from orm.exceptions import ObjectDoesNotExiet
+from orm.exceptions import ObjectDoesNotExist
 
 
 class BaseModel(type):
@@ -23,7 +23,7 @@ class Model(metaclass=BaseModel):
     def save(self):
         try:
             self.__class__.objects.get(id=self.__dict__.get('id'))
-        except ObjectDoesNotExiet:
+        except ObjectDoesNotExist:
             self.__class__.objects.create(**self.__dict__)
         else:
             self.__class__.objects.update(self.__dict__, id=self.__dict__.get('id'))

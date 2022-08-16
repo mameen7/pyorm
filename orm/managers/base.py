@@ -1,6 +1,6 @@
 from orm.utils import Field, Q
 from orm.query import Query
-from orm.exceptions import MissingParameter, ObjectDoesNotExiet, InvalidParameter
+from orm.exceptions import MissingParameter, ObjectDoesNotExist, InvalidParameter
 
 
 class BaseManager:
@@ -53,8 +53,8 @@ class BaseManager:
         return self.filter()
     
     def filter(self, fields=None, condition=None, limit=None, **kwargs):
-        if not (isinstance(fields, list) or isinstance(fields, Q)):
-            raise InvalidParameter('InvalidParameter! Invalid query parameter')
+        if fields and not (isinstance(fields, list) or isinstance(fields, Q) or None):
+            raise InvalidParameter
         if isinstance(fields, Q):
             condition, fields = fields, None
 
@@ -65,24 +65,24 @@ class BaseManager:
         return self._get_filter_query_result(cursor, fields)
 
     def get(self, fields=None, condition=None, **kwargs):
-        if not (isinstance(fields, list) or isinstance(fields, Q)):
-            raise InvalidParameter('InvalidParameter! Invalid query parameter')
+        if fields and not (isinstance(fields, list) or isinstance(fields, Q)):
+            raise InvalidParameter
         if isinstance(fields, Q):
             condition, fields = fields, None
         if not (condition or kwargs):
-            raise MissingParameter('Error! At least one condition is required')
+            raise MissingParameter
 
         model_object = self.filter(fields, condition=condition, limit=1, **kwargs)
         if not model_object:
-            raise ObjectDoesNotExiet('Error! Object does not exit')
+            raise ObjectDoesNotExist
 
         return model_object[0]
 
     def update(self, new_data, condition=None, **kwargs):
         if not new_data:
-            raise MissingParameter('Error! Missing update data')
+            raise MissingParameter
         if not (condition or kwargs):
-            raise MissingParameter('Error! At least one condition is required')
+            raise MissingParameter
             
         # Ensure that the record exist in the database before executing update
         self.get(condition=condition, **kwargs)
@@ -98,7 +98,7 @@ class BaseManager:
 
     def delete(self, condition=None, **kwargs):
         if not (condition or kwargs):
-            raise MissingParameter('Error! At least one condition is required')
+            raise MissingParameter
         self.get(condition=condition, **kwargs)
         sql_query, params = self.query.get_delete_query(condition, **kwargs)
         self._execute_query(sql_query, params)
