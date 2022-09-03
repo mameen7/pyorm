@@ -21,7 +21,7 @@ pyorm is a simple and basic Django-like ORM (Object Relational Mapper) written i
 
     class User(models.Model):
         table_name = 'users'
-        model_manager = PostgreSQLManager
+        model_manager = PostgreSQLManager  # Use MySQLManager here for mysql database connection.
 
 
     # SQL: SELECT * FROM users WHERE id = 1;
