@@ -4,7 +4,7 @@ pyorm is a simple and basic Django-like ORM (Object Relational Mapper) written i
 ## Basic Usage
     from orm import db_connector
     from orm import models
-    # for postgresql database. import the MySQLManager for mysql database connection
+    # This is for postgresql database. import the MySQLManager instead for mysql database connection
     from orm.managers import PostgreSQLManager
     from orm.utils import Q
 
