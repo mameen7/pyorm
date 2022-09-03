@@ -58,8 +58,12 @@ users = User.objects.filter(condition=Q(id__in=[3, 4]))
 # ;
 User.objects.create(first_name="Ahmad", last_name="Ameen", age=26)
 
-# SQL: UPDATE user SET age = 27, email = ahmadmameen7@gmail.com WHERE id > 1;
-User.objects.update({'age': 27, 'email': 'ahmadmameen7@gmail.com'}, id__gt=4)
+# SQL: UPDATE user SET age = 27, email = ahmadmameen7@gmail.com WHERE id = 1;
+User.objects.update({'age': 27, 'email': 'ahmadmameen7@gmail.com'}, id=1) # or
+user = User.objects.get(id=1)
+user.age = 27
+user.email = 'ahmadmameen7@gmail.com'
+user.save()
 
 # SQL DELETE FROM users WHERE age < 20;
 User.objects.delete(age__lt=20)
