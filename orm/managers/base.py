@@ -80,7 +80,7 @@ class BaseManager:
         self._execute_query(sql_query, params)
 
     def create(self, **kwargs):
-        self.bulk_create(data=[kwargs])
+        self.bulk_create([kwargs])
 
     @validate_create_data
     def bulk_create(self, data):
